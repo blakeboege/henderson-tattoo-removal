@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400">
+  <rect width="400" height="400" fill="#e8e6e4"></rect>
+  <rect x="60" y="60" width="280" height="280" rx="12" fill="#d9d4cf"></rect>
+  <g opacity="0.15" transform="translate(200 200)">
+    <path d="M -60 -40 Q -30 -80 0 -50 Q 30 -80 60 -40 Q 80 0 40 40 Q 0 70 -40 40 Q -80 0 -60 -40 Z" fill="#2a2a2d"></path>
+  </g>
+  <text x="200" y="370" text-anchor="middle" font-family="-apple-system, &#39;SF Pro Text&#39;, Inter, sans-serif" font-size="12" letter-spacing="-0.12" fill="rgba(0,0,0,0.48)">after — session 7</text>
+</svg>

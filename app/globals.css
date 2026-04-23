@@ -1,0 +1,209 @@
+/* ============================================================
+   Clearline Design System — Colors & Type
+   Apple-inspired: binary light/dark, single blue accent,
+   SF Pro optical typography with negative letter-spacing.
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+:root {
+  /* Foundation */
+  --cl-black:        #000000;
+  --cl-near-black:   #1d1d1f;
+  --cl-light-gray:   #f5f5f7;
+  --cl-white:        #ffffff;
+
+  /* Interactive */
+  --cl-blue:         #0071e3;
+  --cl-blue-link:    #0066cc;
+  --cl-blue-bright:  #2997ff;
+
+  /* Text on light */
+  --cl-fg-1:         #1d1d1f;
+  --cl-fg-2:         rgba(0, 0, 0, 0.8);
+  --cl-fg-3:         rgba(0, 0, 0, 0.48);
+
+  /* Text on dark */
+  --cl-fg-inv-1:     #ffffff;
+  --cl-fg-inv-2:     rgba(255, 255, 255, 0.8);
+  --cl-fg-inv-3:     rgba(255, 255, 255, 0.48);
+
+  /* Surfaces */
+  --cl-bg:           var(--cl-light-gray);
+  --cl-bg-inv:       var(--cl-black);
+  --cl-surface-1:    #272729;
+
+  /* Lines */
+  --cl-line-light:   rgba(0, 0, 0, 0.08);
+  --cl-line-dark:    rgba(255, 255, 255, 0.12);
+
+  /* Elevation */
+  --cl-shadow-card:  rgba(0, 0, 0, 0.22) 3px 5px 30px 0px;
+
+  /* Radii */
+  --cl-r-std:        8px;
+  --cl-r-comfort:    11px;
+  --cl-r-large:      12px;
+  --cl-r-pill:       980px;
+
+  /* Motion */
+  --cl-ease:         cubic-bezier(0.4, 0.0, 0.2, 1);
+  --cl-ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
+  --cl-dur-fast:     120ms;
+  --cl-dur-std:      240ms;
+  --cl-dur-slow:     400ms;
+
+  /* Layout */
+  --cl-max-w:        1080px;
+  --cl-nav-h:        48px;
+
+  /* Type families */
+  --cl-font-display:
+    -apple-system, BlinkMacSystemFont,
+    "SF Pro Display", "SF Pro Icons",
+    "Inter", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --cl-font-text:
+    -apple-system, BlinkMacSystemFont,
+    "SF Pro Text", "SF Pro Icons",
+    "Inter", "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: #000;
+  color: var(--cl-fg-1);
+  font-family: var(--cl-font-text);
+  font-size: 17px;
+  font-weight: 400;
+  line-height: 1.47;
+  letter-spacing: -0.374px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  font-feature-settings: "ss01", "cv11";
+}
+
+body {
+  background: var(--cl-light-gray);
+  overflow-x: hidden;
+}
+
+a { color: var(--cl-blue-link); text-decoration: none; transition: color var(--cl-dur-fast) var(--cl-ease); }
+a:hover { text-decoration: underline; }
+
+button { font-family: inherit; }
+button:focus-visible, a:focus-visible { outline: 2px solid var(--cl-blue); outline-offset: 2px; }
+button:active { transform: scale(0.98); }
+input:focus, select:focus, textarea:focus { border-color: rgba(0,113,227,0.5) !important; }
+
+img { max-width: 100%; }
+
+/* =====================================================
+   Animation defaults (for GSAP-targeted reveal elements)
+   Elements render visible by default; GSAP hides them
+   only after mount (via gsap.set) then animates back in.
+   That way content is never permanently hidden if the
+   animation can't run (JS off, hook not mounted, etc).
+   ===================================================== */
+[data-reveal], [data-reveal-image] {
+  will-change: transform, opacity;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}
+
+/* =====================================================
+   Popover / popup keyframes
+   ===================================================== */
+@keyframes ec-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes ec-pop { from { opacity: 0; transform: translateY(12px) scale(0.96); } to { opacity: 1; transform: translateY(0) scale(1); } }
+
+/* =====================================================
+   Hover affordances — small, refined.
+   ===================================================== */
+.cl-hover-lift {
+  transition: transform var(--cl-dur-std) var(--cl-ease-out-soft),
+              box-shadow var(--cl-dur-std) var(--cl-ease-out-soft);
+}
+.cl-hover-lift:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 18px 40px rgba(0,0,0,0.12);
+}
+.cl-hover-lift-dark {
+  transition: transform var(--cl-dur-std) var(--cl-ease-out-soft),
+              box-shadow var(--cl-dur-std) var(--cl-ease-out-soft),
+              background-color var(--cl-dur-std) var(--cl-ease-out-soft);
+}
+.cl-hover-lift-dark:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 18px 40px rgba(0,0,0,0.5);
+}
+
+.cl-btn-pressable {
+  transition: transform var(--cl-dur-fast) var(--cl-ease),
+              background-color var(--cl-dur-std) var(--cl-ease),
+              color var(--cl-dur-std) var(--cl-ease),
+              border-color var(--cl-dur-std) var(--cl-ease),
+              box-shadow var(--cl-dur-std) var(--cl-ease);
+}
+.cl-btn-pressable:hover { transform: translateY(-1px); }
+.cl-btn-pressable:active { transform: translateY(0) scale(0.98); }
+
+/* Image hover on before/after cards */
+.cl-img-hover {
+  transition: transform 700ms var(--cl-ease-out-soft), filter 700ms var(--cl-ease-out-soft);
+}
+.cl-img-hover:hover { transform: scale(1.03); filter: saturate(1.05); }
+
+/* Nav link underline grow */
+.cl-nav-link {
+  position: relative;
+}
+.cl-nav-link::after {
+  content: '';
+  position: absolute; left: 0; right: 0; bottom: -4px;
+  height: 1px; background: currentColor;
+  transform: scaleX(0);
+  transform-origin: 50% 50%;
+  transition: transform 280ms var(--cl-ease-out-soft);
+  opacity: 0.8;
+}
+.cl-nav-link:hover::after { transform: scaleX(0.6); }
+.cl-nav-link[data-active="true"]::after { transform: scaleX(0.6); }
+
+/* Sticky nav shadow + translucency */
+.cl-nav-bar {
+  transition: background-color 240ms var(--cl-ease), backdrop-filter 240ms var(--cl-ease), box-shadow 240ms var(--cl-ease);
+}
+.cl-nav-bar[data-scrolled="true"] {
+  background: rgba(0,0,0,0.88);
+  box-shadow: 0 1px 0 rgba(255,255,255,0.06), 0 8px 30px rgba(0,0,0,0.4);
+}
+
+/* Responsive breakpoints via raw media queries where needed */
+@media (max-width: 960px) {
+  .cl-grid-4-to-2 { grid-template-columns: repeat(2, 1fr) !important; }
+  .cl-grid-3-to-2 { grid-template-columns: repeat(2, 1fr) !important; }
+  .cl-grid-2-to-1 { grid-template-columns: 1fr !important; }
+  .cl-row-reverse-md { flex-direction: column !important; }
+  .cl-hide-md { display: none !important; }
+}
+
+@media (max-width: 720px) {
+  .cl-grid-4-to-1 { grid-template-columns: 1fr !important; }
+  .cl-grid-3-to-1 { grid-template-columns: 1fr !important; }
+  .cl-grid-2-to-1-sm { grid-template-columns: 1fr !important; }
+  .cl-stack-sm { flex-direction: column !important; align-items: flex-start !important; }
+  .cl-hide-sm { display: none !important; }
+  .cl-nav-links-sm { display: none !important; }
+  .cl-nav-menu-btn { display: inline-flex !important; }
+  .cl-display-sm { font-size: 44px !important; line-height: 1.08 !important; letter-spacing: -0.4px !important; }
+  .cl-h-sm { font-size: 34px !important; line-height: 1.08 !important; letter-spacing: -0.3px !important; }
+  .cl-sub-sm { font-size: 17px !important; }
+  .cl-pad-sm { padding-left: 20px !important; padding-right: 20px !important; }
+  .cl-section-sm { padding-top: 72px !important; padding-bottom: 72px !important; }
+}

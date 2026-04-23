@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" width="800" height="500">
+  <rect width="800" height="500" fill="#f5f5f7"></rect>
+  
+  <rect x="0" y="380" width="800" height="120" fill="#e8e8ea"></rect>
+  <rect x="60" y="240" width="300" height="140" rx="6" fill="#ffffff" stroke="#e0e0e3"></rect>
+  <rect x="380" y="180" width="160" height="200" rx="6" fill="#ffffff" stroke="#e0e0e3"></rect>
+  <circle cx="650" cy="260" r="70" fill="#ffffff" stroke="#e0e0e3"></circle>
+  <rect x="80" y="60" width="640" height="120" rx="4" fill="#ffffff" stroke="#e0e0e3"></rect>
+  <text x="400" y="460" text-anchor="middle" font-family="-apple-system, &#39;SF Pro Text&#39;, Inter, sans-serif" font-size="12" letter-spacing="-0.12" fill="rgba(0,0,0,0.48)">placeholder — replace with clinic interior photography</text>
+</svg>
