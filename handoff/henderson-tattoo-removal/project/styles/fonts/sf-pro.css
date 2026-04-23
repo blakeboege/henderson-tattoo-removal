@@ -1,0 +1,38 @@
+/* ============================================================
+   Clearline — SF Pro font stack
+   ============================================================
+   SF Pro is Apple-proprietary; it ships on Apple devices but
+   cannot be self-hosted on the public web. The stack below:
+
+   1. Prefers SF Pro if the user is on Apple hardware.
+   2. Falls back to Inter (Google Fonts) — the closest free
+      analogue, also optically-sized.
+   3. Finally falls back to system sans.
+
+   ⚠ SUBSTITUTION FLAG: Inter is a stand-in for SF Pro.
+      If the brand team procures an SF Pro license, drop the
+      .woff2 files into fonts/ and swap this @import for
+      local @font-face declarations pointing at them.
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+/* Remap our family tokens to prefer SF Pro where available,
+   then Inter as the optical-sized fallback. */
+:root {
+  --cl-font-display:
+    -apple-system, BlinkMacSystemFont,
+    "SF Pro Display", "SF Pro Icons",
+    "Inter", "Helvetica Neue", Helvetica, Arial, sans-serif;
+
+  --cl-font-text:
+    -apple-system, BlinkMacSystemFont,
+    "SF Pro Text", "SF Pro Icons",
+    "Inter", "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+
+/* Inter has optical sizing similar in spirit to SF Pro.
+   When falling back, ensure we use the variable-leaning face. */
+body {
+  font-feature-settings: "ss01", "cv11";
+}

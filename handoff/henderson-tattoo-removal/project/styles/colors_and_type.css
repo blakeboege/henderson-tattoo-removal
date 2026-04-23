@@ -1,0 +1,423 @@
+/* ============================================================
+   Clearline Design System — Colors & Type
+   Apple-inspired: binary light/dark, single blue accent,
+   SF Pro optical typography with negative letter-spacing.
+   Import this file first on every page.
+   ============================================================ */
+
+@import url('./fonts/sf-pro.css');
+
+:root {
+  /* ——— Foundation ——— */
+  --cl-black:        #000000;
+  --cl-near-black:   #1d1d1f;
+  --cl-light-gray:   #f5f5f7;
+  --cl-white:        #ffffff;
+
+  /* ——— Interactive (the only chromatic color) ——— */
+  --cl-blue:         #0071e3;  /* primary CTA, focus */
+  --cl-blue-link:    #0066cc;  /* inline links on light bg */
+  --cl-blue-bright:  #2997ff;  /* inline links on dark bg */
+
+  /* ——— Text on light ——— */
+  --cl-fg-1:         #1d1d1f;                    /* primary */
+  --cl-fg-2:         rgba(0, 0, 0, 0.8);         /* secondary */
+  --cl-fg-3:         rgba(0, 0, 0, 0.48);        /* tertiary, disabled */
+
+  /* ——— Text on dark ——— */
+  --cl-fg-inv-1:     #ffffff;
+  --cl-fg-inv-2:     rgba(255, 255, 255, 0.8);
+  --cl-fg-inv-3:     rgba(255, 255, 255, 0.48);
+
+  /* ——— Surfaces ——— */
+  --cl-bg:           var(--cl-light-gray);
+  --cl-bg-inv:       var(--cl-black);
+  --cl-surface-1:    #272729;
+  --cl-surface-2:    #262628;
+  --cl-surface-3:    #28282a;
+  --cl-surface-4:    #2a2a2d;
+  --cl-surface-5:    #242426;
+
+  /* ——— Button token states ——— */
+  --cl-btn-active:         #ededf2;
+  --cl-btn-default-light:  #fafafc;
+  --cl-overlay-media:      rgba(210, 210, 215, 0.64);
+  --cl-white-32:           rgba(255, 255, 255, 0.32);
+
+  /* ——— Lines (use sparingly) ——— */
+  --cl-line-light:   rgba(0, 0, 0, 0.08);
+  --cl-line-dark:    rgba(255, 255, 255, 0.12);
+  --cl-line-filter:  rgba(0, 0, 0, 0.04);
+
+  /* ——— Elevation ——— */
+  --cl-shadow-card:  rgba(0, 0, 0, 0.22) 3px 5px 30px 0px;
+  --cl-nav-bg:       rgba(0, 0, 0, 0.8);
+  --cl-nav-blur:     saturate(180%) blur(20px);
+
+  /* ——— Radii ——— */
+  --cl-r-micro:      5px;
+  --cl-r-std:        8px;
+  --cl-r-comfort:    11px;
+  --cl-r-large:      12px;
+  --cl-r-pill:       980px;
+  --cl-r-circle:     50%;
+
+  /* ——— Spacing (8px base with micro granularity) ——— */
+  --cl-s-1:   2px;
+  --cl-s-2:   4px;
+  --cl-s-3:   6px;
+  --cl-s-4:   8px;
+  --cl-s-5:   12px;
+  --cl-s-6:   16px;
+  --cl-s-7:   24px;
+  --cl-s-8:   32px;
+  --cl-s-9:   48px;
+  --cl-s-10:  64px;
+  --cl-s-11:  96px;
+  --cl-s-12:  128px;
+
+  /* ——— Layout ——— */
+  --cl-max-w:        980px;
+  --cl-nav-h:        48px;
+
+  /* ——— Motion ——— */
+  --cl-ease:         cubic-bezier(0.4, 0.0, 0.2, 1);
+  --cl-dur-fast:     120ms;
+  --cl-dur-std:      240ms;
+  --cl-dur-slow:     400ms;
+
+  /* ——— Type families ——— */
+  --cl-font-display: "SF Pro Display", "SF Pro Icons", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --cl-font-text:    "SF Pro Text", "SF Pro Icons", "Helvetica Neue", Helvetica, Arial, sans-serif;
+
+  /* ——— Semantic type: each role bundles family/size/weight/line-height/tracking ——— */
+  /* Display Hero — product launches */
+  --cl-t-display-size:    56px;
+  --cl-t-display-weight:  600;
+  --cl-t-display-lh:      1.07;
+  --cl-t-display-ls:      -0.28px;
+
+  /* Section Heading */
+  --cl-t-h1-size:    40px;
+  --cl-t-h1-weight:  600;
+  --cl-t-h1-lh:      1.10;
+  --cl-t-h1-ls:      normal;
+
+  /* Tile Heading */
+  --cl-t-h2-size:    28px;
+  --cl-t-h2-weight:  400;
+  --cl-t-h2-lh:      1.14;
+  --cl-t-h2-ls:      0.196px;
+
+  /* Card Title (bold) */
+  --cl-t-h3-size:    21px;
+  --cl-t-h3-weight:  700;
+  --cl-t-h3-lh:      1.19;
+  --cl-t-h3-ls:      0.231px;
+
+  /* Sub-heading */
+  --cl-t-h4-size:    21px;
+  --cl-t-h4-weight:  400;
+  --cl-t-h4-lh:      1.19;
+  --cl-t-h4-ls:      0.231px;
+
+  /* Nav Heading (large) */
+  --cl-t-nav-size:    34px;
+  --cl-t-nav-weight:  600;
+  --cl-t-nav-lh:      1.47;
+  --cl-t-nav-ls:      -0.374px;
+
+  /* Sub-nav */
+  --cl-t-subnav-size:    24px;
+  --cl-t-subnav-weight:  300;
+  --cl-t-subnav-lh:      1.50;
+  --cl-t-subnav-ls:      normal;
+
+  /* Body */
+  --cl-t-body-size:    17px;
+  --cl-t-body-weight:  400;
+  --cl-t-body-lh:      1.47;
+  --cl-t-body-ls:      -0.374px;
+
+  /* Body Emphasis */
+  --cl-t-body-em-size:    17px;
+  --cl-t-body-em-weight:  600;
+  --cl-t-body-em-lh:      1.24;
+  --cl-t-body-em-ls:      -0.374px;
+
+  /* Button Large (light weight) */
+  --cl-t-btn-lg-size:    18px;
+  --cl-t-btn-lg-weight:  300;
+  --cl-t-btn-lg-lh:      1.00;
+  --cl-t-btn-lg-ls:      normal;
+
+  /* Button */
+  --cl-t-btn-size:    17px;
+  --cl-t-btn-weight:  400;
+  --cl-t-btn-lh:      2.41;
+  --cl-t-btn-ls:      normal;
+
+  /* Link / Caption */
+  --cl-t-link-size:    14px;
+  --cl-t-link-weight:  400;
+  --cl-t-link-lh:      1.43;
+  --cl-t-link-ls:      -0.224px;
+
+  --cl-t-caption-size:    14px;
+  --cl-t-caption-weight:  400;
+  --cl-t-caption-lh:      1.29;
+  --cl-t-caption-ls:      -0.224px;
+
+  --cl-t-caption-em-size:    14px;
+  --cl-t-caption-em-weight:  600;
+  --cl-t-caption-em-lh:      1.29;
+  --cl-t-caption-em-ls:      -0.224px;
+
+  /* Micro */
+  --cl-t-micro-size:    12px;
+  --cl-t-micro-weight:  400;
+  --cl-t-micro-lh:      1.33;
+  --cl-t-micro-ls:      -0.12px;
+
+  --cl-t-micro-em-size:    12px;
+  --cl-t-micro-em-weight:  600;
+  --cl-t-micro-em-lh:      1.33;
+  --cl-t-micro-em-ls:      -0.12px;
+
+  /* Nano */
+  --cl-t-nano-size:    10px;
+  --cl-t-nano-weight:  400;
+  --cl-t-nano-lh:      1.47;
+  --cl-t-nano-ls:      -0.08px;
+}
+
+/* ============================================================
+   Base
+   ============================================================ */
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--cl-bg);
+  color: var(--cl-fg-1);
+  font-family: var(--cl-font-text);
+  font-size: var(--cl-t-body-size);
+  font-weight: var(--cl-t-body-weight);
+  line-height: var(--cl-t-body-lh);
+  letter-spacing: var(--cl-t-body-ls);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+/* ============================================================
+   Semantic type classes — apply these instead of re-styling
+   ============================================================ */
+
+.cl-display {
+  font-family: var(--cl-font-display);
+  font-size: var(--cl-t-display-size);
+  font-weight: var(--cl-t-display-weight);
+  line-height: var(--cl-t-display-lh);
+  letter-spacing: var(--cl-t-display-ls);
+}
+
+.cl-h1 {
+  font-family: var(--cl-font-display);
+  font-size: var(--cl-t-h1-size);
+  font-weight: var(--cl-t-h1-weight);
+  line-height: var(--cl-t-h1-lh);
+  letter-spacing: var(--cl-t-h1-ls);
+}
+
+.cl-h2 {
+  font-family: var(--cl-font-display);
+  font-size: var(--cl-t-h2-size);
+  font-weight: var(--cl-t-h2-weight);
+  line-height: var(--cl-t-h2-lh);
+  letter-spacing: var(--cl-t-h2-ls);
+}
+
+.cl-h3 {
+  font-family: var(--cl-font-display);
+  font-size: var(--cl-t-h3-size);
+  font-weight: var(--cl-t-h3-weight);
+  line-height: var(--cl-t-h3-lh);
+  letter-spacing: var(--cl-t-h3-ls);
+}
+
+.cl-h4 {
+  font-family: var(--cl-font-display);
+  font-size: var(--cl-t-h4-size);
+  font-weight: var(--cl-t-h4-weight);
+  line-height: var(--cl-t-h4-lh);
+  letter-spacing: var(--cl-t-h4-ls);
+}
+
+.cl-subnav {
+  font-family: var(--cl-font-text);
+  font-size: var(--cl-t-subnav-size);
+  font-weight: var(--cl-t-subnav-weight);
+  line-height: var(--cl-t-subnav-lh);
+  letter-spacing: var(--cl-t-subnav-ls);
+}
+
+.cl-body {
+  font-family: var(--cl-font-text);
+  font-size: var(--cl-t-body-size);
+  font-weight: var(--cl-t-body-weight);
+  line-height: var(--cl-t-body-lh);
+  letter-spacing: var(--cl-t-body-ls);
+}
+
+.cl-body-em {
+  font-family: var(--cl-font-text);
+  font-size: var(--cl-t-body-em-size);
+  font-weight: var(--cl-t-body-em-weight);
+  line-height: var(--cl-t-body-em-lh);
+  letter-spacing: var(--cl-t-body-em-ls);
+}
+
+.cl-caption {
+  font-family: var(--cl-font-text);
+  font-size: var(--cl-t-caption-size);
+  font-weight: var(--cl-t-caption-weight);
+  line-height: var(--cl-t-caption-lh);
+  letter-spacing: var(--cl-t-caption-ls);
+}
+
+.cl-caption-em {
+  font-family: var(--cl-font-text);
+  font-size: var(--cl-t-caption-em-size);
+  font-weight: var(--cl-t-caption-em-weight);
+  line-height: var(--cl-t-caption-em-lh);
+  letter-spacing: var(--cl-t-caption-em-ls);
+}
+
+.cl-micro {
+  font-family: var(--cl-font-text);
+  font-size: var(--cl-t-micro-size);
+  font-weight: var(--cl-t-micro-weight);
+  line-height: var(--cl-t-micro-lh);
+  letter-spacing: var(--cl-t-micro-ls);
+}
+
+.cl-nano {
+  font-family: var(--cl-font-text);
+  font-size: var(--cl-t-nano-size);
+  font-weight: var(--cl-t-nano-weight);
+  line-height: var(--cl-t-nano-lh);
+  letter-spacing: var(--cl-t-nano-ls);
+}
+
+/* ============================================================
+   Links
+   ============================================================ */
+
+a {
+  color: var(--cl-blue-link);
+  text-decoration: none;
+  transition: color var(--cl-dur-fast) var(--cl-ease);
+}
+a:hover { text-decoration: underline; }
+.cl-on-dark a { color: var(--cl-blue-bright); }
+
+/* ============================================================
+   Buttons
+   ============================================================ */
+
+.cl-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: 1px solid transparent;
+  padding: 8px 15px;
+  border-radius: var(--cl-r-std);
+  font-family: var(--cl-font-text);
+  font-size: 17px;
+  font-weight: 400;
+  line-height: 1;
+  cursor: pointer;
+  user-select: none;
+  transition: background var(--cl-dur-fast) var(--cl-ease),
+              color var(--cl-dur-fast) var(--cl-ease),
+              transform var(--cl-dur-fast) var(--cl-ease);
+}
+.cl-btn:focus-visible {
+  outline: 2px solid var(--cl-blue);
+  outline-offset: 2px;
+}
+.cl-btn:active { transform: scale(0.97); }
+
+.cl-btn--primary {
+  background: var(--cl-blue);
+  color: var(--cl-white);
+}
+.cl-btn--primary:hover { background: #0077ED; }
+
+.cl-btn--dark {
+  background: var(--cl-near-black);
+  color: var(--cl-white);
+}
+.cl-btn--dark:hover { background: #2b2b2e; }
+
+.cl-btn--pill {
+  border-radius: var(--cl-r-pill);
+  background: transparent;
+  color: var(--cl-blue-link);
+  border: 1px solid var(--cl-blue-link);
+  padding: 8px 18px;
+}
+.cl-btn--pill:hover { background: rgba(0, 102, 204, 0.08); text-decoration: none; }
+.cl-on-dark .cl-btn--pill { color: var(--cl-blue-bright); border-color: var(--cl-blue-bright); }
+.cl-on-dark .cl-btn--pill:hover { background: rgba(41, 151, 255, 0.12); }
+
+.cl-btn--pill-solid {
+  border-radius: var(--cl-r-pill);
+  background: var(--cl-blue);
+  color: var(--cl-white);
+  border: 1px solid var(--cl-blue);
+  padding: 8px 18px;
+}
+.cl-btn--pill-solid:hover { background: #0077ED; }
+
+.cl-btn--ghost-on-dark {
+  background: transparent;
+  color: var(--cl-white);
+  border: 1px solid var(--cl-white);
+  border-radius: var(--cl-r-pill);
+  padding: 8px 18px;
+}
+.cl-btn--ghost-on-dark:hover { background: rgba(255,255,255,0.08); }
+
+/* Inline learn-more link with chevron */
+.cl-learn-more {
+  color: var(--cl-blue-link);
+  font-family: var(--cl-font-text);
+  font-size: 17px;
+  font-weight: 400;
+  letter-spacing: -0.374px;
+}
+.cl-learn-more::after { content: " \203A"; }
+.cl-learn-more:hover { text-decoration: underline; }
+.cl-on-dark .cl-learn-more { color: var(--cl-blue-bright); }
+
+/* ============================================================
+   Utility
+   ============================================================ */
+
+.cl-section         { padding: var(--cl-s-11) var(--cl-s-7); }
+.cl-section--dark   { background: var(--cl-black); color: var(--cl-white); }
+.cl-section--light  { background: var(--cl-light-gray); color: var(--cl-near-black); }
+.cl-container       { max-width: var(--cl-max-w); margin: 0 auto; }
+
+.cl-card {
+  background: var(--cl-light-gray);
+  border-radius: var(--cl-r-std);
+  padding: var(--cl-s-7);
+}
+.cl-card--dark      { background: var(--cl-surface-1); color: var(--cl-white); }
+.cl-card--elevated  { box-shadow: var(--cl-shadow-card); background: var(--cl-white); }
