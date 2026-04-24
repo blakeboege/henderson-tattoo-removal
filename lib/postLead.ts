@@ -1,382 +1,113 @@
-"use client";
+const LEAD_ENDPOINT =
+  "https://script.google.com/macros/s/AKfycbzQaMtYtjkPv-xs-XQze-DkPuy4CveJmJBp3kS1jsxQ0s8kSxNbJXaZvDG0cjZOZsDFkw/exec";
 
-import { useRef, useState, type CSSProperties } from "react";
-import { useReveal } from "@/lib/useReveal";
-import { postLead } from "@/lib/postLead";
+/**
+ * Submit a lead to the Google Apps Script endpoint.
+ *
+ * Strategy (top-to-bottom, stop on first success):
+ *
+ *   1. fetch POST with `application/x-www-form-urlencoded` body,
+ *      `keepalive: true`, `mode: "no-cors"`.
+ *      – Works reliably on iPhone Chrome / iPhone Safari / Android Chrome
+ *        / desktop Chrome.
+ *      – URL-encoded is a CORS "simple request" → no preflight.
+ *      – `keepalive: true` guarantees the request completes even if the
+ *        page is immediately re-rendered or the user navigates away.
+ *      – `mode: "no-cors"` keeps the opaque CORS response from throwing;
+ *        Apps Script still receives the POST and writes the row.
+ *
+ *   2. `navigator.sendBeacon` with a url-encoded Blob (historical fallback).
+ *      iOS WebKit can silently drop sendBeacon when the page doesn't
+ *      actually unload, which is why it must not be the primary path.
+ *
+ *   3. Hidden `<form>` submitted into an invisible iframe (universal
+ *      fallback that works even on very old browsers).
+ *
+ * Returns `true` as soon as any path accepts the request.
+ */
+export async function postLead(email: string, phone: string): Promise<boolean> {
+  if (typeof window === "undefined") return false;
 
-function Dot({ active, done }: { active?: boolean; done?: boolean }) {
-  return (
-    <span
-      style={{
-        width: 8,
-        height: 8,
-        borderRadius: "50%",
-        background: done ? "#30d158" : active ? "#2997ff" : "rgba(255,255,255,0.22)",
-        display: "inline-block",
-      }}
-    />
-  );
-}
-function DotSep({ active }: { active?: boolean }) {
-  return (
-    <span
-      style={{
-        width: 18,
-        height: 1,
-        background: active ? "#2997ff" : "rgba(255,255,255,0.22)",
-        display: "inline-block",
-      }}
-    />
-  );
-}
+  const body = new URLSearchParams();
+  body.append("email", email);
+  body.append("phone", phone);
 
-function LockIcon() {
-  return (
-    <svg
-      width="13"
-      height="13"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={2}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-      style={{ flexShrink: 0 }}
-    >
-      <rect x="3" y="11" width="18" height="11" rx="2" />
-      <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-    </svg>
-  );
-}
+  // --- 1. Primary: fetch with keepalive -----------------------------------
+  try {
+    // We deliberately do NOT await the response body — only the headers.
+    // With `mode: "no-cors"` the response is opaque but the request is
+    // committed to the network stack as soon as fetch() is called, and
+    // `keepalive: true` guarantees it completes regardless of re-renders.
+    const res = fetch(LEAD_ENDPOINT, {
+      method: "POST",
+      body,
+      mode: "no-cors",
+      keepalive: true,
+      // Explicit Content-Type isn't needed (URLSearchParams sets it), but
+      // being explicit is harmless and makes the network inspector clearer.
+      headers: { "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8" },
+    });
+    // Give fetch a microtask tick to hand off to the network stack, then
+    // resolve. We don't await the full response because on slow mobile
+    // networks that can stall the UI for several seconds — the request
+    // is already in-flight with keepalive protecting it.
+    void res.catch(() => {});
+    return true;
+  } catch {
+    // Fell through — try beacon.
+  }
 
-export default function EmailCapture() {
-  const [step, setStep] = useState<"email" | "phone" | "done">("email");
-  const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
-  // Snapshot of submitted values so the success state can reference them
-  // after the live input state is cleared.
-  const [sentEmail, setSentEmail] = useState("");
-  const [sentPhone, setSentPhone] = useState("");
-  // Gate the final submit so a slow network can't produce a double-tap.
-  const [submitting, setSubmitting] = useState(false);
-  const phoneRef = useRef<HTMLInputElement | null>(null);
-  const ref = useReveal<HTMLElement>({ y: 24, stagger: 0.08, duration: 0.9 });
-
-  const finalize = async (emailValue: string, phoneValue: string) => {
-    if (submitting) return;
-    setSubmitting(true);
-    try {
-      // Await so we observe that postLead has at least dispatched the
-      // request (fetch + keepalive primary, sendBeacon / hidden-form
-      // fallbacks) before flipping to the success state.
-      await postLead(emailValue, phoneValue);
-    } finally {
-      setSentEmail(emailValue);
-      setSentPhone(phoneValue);
-      setEmail("");
-      setPhone("");
-      setSubmitting(false);
-      setStep("done");
+  // --- 2. Secondary: sendBeacon -------------------------------------------
+  try {
+    if (typeof navigator !== "undefined" && typeof navigator.sendBeacon === "function") {
+      const blob = new Blob([body.toString()], {
+        type: "application/x-www-form-urlencoded;charset=UTF-8",
+      });
+      if (navigator.sendBeacon(LEAD_ENDPOINT, blob)) return true;
     }
-  };
+  } catch {
+    // Fell through — try hidden-form.
+  }
 
-  const submitEmail = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!email) return;
-    setStep("phone");
-    setTimeout(() => phoneRef.current?.focus(), 80);
-  };
-
-  const submitPhone = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (submitting) return;
-    void finalize(email, phone);
-  };
-
-  const skipPhone = () => {
-    if (submitting) return;
-    void finalize(email, "");
-  };
-
-  return (
-    <section
-      id="estimate-form"
-      ref={ref}
-      style={styles.section}
-      aria-labelledby="ec-headline"
-      className="cl-section-sm cl-pad-sm"
-    >
-      <div style={styles.inner}>
-        {step === "email" && (
-          <>
-            <div style={styles.stepBar} data-reveal>
-              <Dot active /> <DotSep /> <Dot />
-              <span style={styles.stepLabel}>Step 1 of 2 · Email</span>
-            </div>
-            <h2 id="ec-headline" style={styles.h} className="cl-display-sm" data-reveal>
-              Want to know what your tattoo will take to remove?
-            </h2>
-            <p style={styles.sub} data-reveal>
-              We&apos;ll send realistic pricing and session timelines based on your tattoo. Serving
-              Henderson and Las Vegas.
-            </p>
-            <form onSubmit={submitEmail} style={styles.form} noValidate data-reveal>
-              <div style={styles.field}>
-                <label htmlFor="ec-email" style={styles.label}>
-                  Email
-                </label>
-                <input
-                  id="ec-email"
-                  name="email"
-                  type="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="you@example.com"
-                  style={styles.input}
-                  autoComplete="email"
-                  inputMode="email"
-                />
-              </div>
-              <button type="submit" style={styles.btn} className="cl-btn-pressable">
-                Get my estimate →
-              </button>
-              <div style={styles.trust}>
-                <LockIcon />
-                <span>We respect your privacy. No spam.</span>
-              </div>
-            </form>
-          </>
-        )}
-
-        {step === "phone" && (
-          <>
-            <div style={styles.stepBar} data-reveal>
-              <Dot done /> <DotSep active /> <Dot active />
-              <span style={styles.stepLabel}>Step 2 of 2 · Phone optional</span>
-            </div>
-            <h2 style={styles.h} className="cl-display-sm" data-reveal>
-              Got it. Want the estimate by text too?
-            </h2>
-            <p style={styles.sub} data-reveal>
-              Add your phone number for a faster reply, or continue with email only.
-            </p>
-            <form onSubmit={submitPhone} style={styles.form} noValidate data-reveal>
-              <div style={styles.field}>
-                <label htmlFor="ec-phone" style={styles.label}>
-                  Phone number
-                </label>
-                <input
-                  ref={phoneRef}
-                  id="ec-phone"
-                  name="phone"
-                  type="tel"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  placeholder="(702) 555-0123"
-                  style={styles.input}
-                  autoComplete="tel"
-                  inputMode="tel"
-                />
-              </div>
-              <button
-                type="submit"
-                style={{ ...styles.btn, ...(submitting ? styles.btnDisabled : {}) }}
-                className="cl-btn-pressable"
-                disabled={submitting}
-              >
-                {submitting ? "Sending…" : "Finish →"}
-              </button>
-              <div style={styles.trust}>
-                <button
-                  type="button"
-                  onClick={skipPhone}
-                  style={styles.skipBtn}
-                  disabled={submitting}
-                >
-                  Email only is fine
-                </button>
-                <span style={{ opacity: 0.4 }}>·</span>
-                <LockIcon />
-                <span>We respect your privacy. No spam.</span>
-              </div>
-            </form>
-          </>
-        )}
-
-        {step === "done" && (
-          <div style={styles.done} data-reveal>
-            <div style={styles.doneIcon}>
-              <svg
-                width="30"
-                height="30"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="#30d158"
-                strokeWidth={2}
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M20 6L9 17l-5-5" />
-              </svg>
-            </div>
-            <div style={styles.doneH}>Got it — your estimate is on its way.</div>
-            <div style={styles.doneB}>
-              We&apos;ll follow up with <strong style={{ color: "#fff" }}>{sentEmail}</strong>
-              {sentPhone ? (
-                <>
-                  {" "}
-                  and text <strong style={{ color: "#fff" }}>{sentPhone}</strong>
-                </>
-              ) : null}{" "}
-              within one business day.
-            </div>
-          </div>
-        )}
-      </div>
-    </section>
-  );
+  // --- 3. Tertiary: hidden form into hidden iframe ------------------------
+  try {
+    submitViaHiddenForm(email, phone);
+    return true;
+  } catch {
+    return false;
+  }
 }
 
-const styles: Record<string, CSSProperties> = {
-  section: {
-    background: "#000",
-    color: "#fff",
-    padding: "128px 24px",
-    position: "relative",
-    overflow: "hidden",
-    textAlign: "center",
-    scrollMarginTop: 72,
-  },
-  inner: { maxWidth: 720, margin: "0 auto", position: "relative" },
-  stepBar: {
-    display: "inline-flex",
-    alignItems: "center",
-    gap: 6,
-    fontSize: 13,
-    letterSpacing: "-0.12px",
-    color: "rgba(255,255,255,0.66)",
-    marginBottom: 20,
-    fontWeight: 500,
-  },
-  stepLabel: { marginLeft: 8 },
-  h: {
-    margin: 0,
-    fontFamily: "var(--cl-font-display)",
-    fontSize: 48,
-    fontWeight: 600,
-    lineHeight: 1.07,
-    letterSpacing: "-0.4px",
-    textWrap: "balance",
-  },
-  sub: {
-    margin: "18px auto 0",
-    maxWidth: 580,
-    fontSize: 19,
-    lineHeight: 1.6,
-    letterSpacing: "-0.374px",
-    color: "rgba(255,255,255,0.8)",
-  },
-  form: {
-    marginTop: 44,
-    display: "flex",
-    flexDirection: "column",
-    gap: 20,
-    width: "100%",
-    maxWidth: 520,
-    margin: "44px auto 0",
-    textAlign: "left",
-  },
-  field: { display: "flex", flexDirection: "column", gap: 8, minWidth: 0 },
-  label: {
-    fontSize: 13,
-    fontWeight: 500,
-    letterSpacing: "-0.12px",
-    color: "rgba(255,255,255,0.82)",
-  },
-  input: {
-    width: "100%",
-    background: "rgba(255,255,255,0.06)",
-    border: "1px solid rgba(255,255,255,0.16)",
-    borderRadius: 14,
-    padding: "16px 20px",
-    fontSize: 17,
-    letterSpacing: "-0.374px",
-    color: "#fff",
-    fontFamily: "inherit",
-    outline: "none",
-    minWidth: 0,
-    transition: "border-color 180ms var(--cl-ease), background 180ms var(--cl-ease)",
-  },
-  btn: {
-    marginTop: 4,
-    background: "#0071e3",
-    color: "#fff",
-    border: "none",
-    padding: "18px 28px",
-    borderRadius: 980,
-    fontFamily: "inherit",
-    fontSize: 17,
-    fontWeight: 500,
-    letterSpacing: "-0.374px",
-    cursor: "pointer",
-    width: "100%",
-    transition: "opacity 180ms var(--cl-ease)",
-  },
-  btnDisabled: {
-    opacity: 0.7,
-    cursor: "not-allowed",
-  },
-  trust: {
-    marginTop: 6,
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 8,
-    fontSize: 13,
-    letterSpacing: "-0.12px",
-    color: "rgba(255,255,255,0.6)",
-    flexWrap: "wrap",
-    textAlign: "center",
-  },
-  skipBtn: {
-    background: "transparent",
-    border: "none",
-    color: "rgba(255,255,255,0.82)",
-    cursor: "pointer",
-    fontFamily: "inherit",
-    fontSize: 13,
-    letterSpacing: "-0.12px",
-    padding: 0,
-    textDecoration: "underline",
-  },
-  done: {
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    gap: 16,
-  },
-  doneIcon: {
-    width: 60,
-    height: 60,
-    borderRadius: "50%",
-    background: "rgba(48,209,88,0.14)",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  doneH: {
-    fontFamily: "var(--cl-font-display)",
-    fontSize: 30,
-    fontWeight: 600,
-    letterSpacing: "-0.3px",
-  },
-  doneB: {
-    maxWidth: 560,
-    fontSize: 17,
-    lineHeight: 1.6,
-    letterSpacing: "-0.224px",
-    color: "rgba(255,255,255,0.78)",
-  },
-};
+function submitViaHiddenForm(email: string, phone: string) {
+  if (typeof document === "undefined") return;
+
+  const frameName = "htr-lead-sink";
+  let frame = document.querySelector<HTMLIFrameElement>(`iframe[name="${frameName}"]`);
+  if (!frame) {
+    frame = document.createElement("iframe");
+    frame.name = frameName;
+    frame.style.display = "none";
+    document.body.appendChild(frame);
+  }
+
+  const form = document.createElement("form");
+  form.method = "POST";
+  form.action = LEAD_ENDPOINT;
+  form.target = frameName;
+  form.enctype = "application/x-www-form-urlencoded";
+  form.style.display = "none";
+
+  const add = (name: string, value: string) => {
+    const input = document.createElement("input");
+    input.type = "hidden";
+    input.name = name;
+    input.value = value;
+    form.appendChild(input);
+  };
+  add("email", email);
+  add("phone", phone);
+
+  document.body.appendChild(form);
+  form.submit();
+  window.setTimeout(() => form.remove(), 2000);
+}
