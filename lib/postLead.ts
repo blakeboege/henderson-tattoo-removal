@@ -1,17 +1,11 @@
 /**
  * Submit a lead to our same-origin /api/lead route.
  *
- * The server then forwards it to the Google Apps Script endpoint. This
- * avoids the whole category of cross-origin / mobile-WebKit problems
- * that come with browsers talking directly to script.google.com:
+ * The server then inserts the row into Supabase's `public.leads` table.
+ * Same-origin + normal fetch avoids every cross-origin / mobile-WebKit
+ * issue (no CORS preflight, no beacon quirks, no mid-flight cancellation).
  *
- *   - no CORS preflight
- *   - no opaque-response / no-cors tricks
- *   - no navigator.sendBeacon quirks on iOS (WebKit often drops beacons
- *     when the page doesn't actually unload)
- *   - no mid-flight request cancellation when the React tree re-renders
- *
- * Returns `true` only if the server confirmed the upstream write.
+ * Returns `true` only if the server confirmed the Supabase insert.
  */
 export async function postLead(email: string, phone: string): Promise<boolean> {
   if (typeof window === "undefined") return false;
@@ -20,8 +14,15 @@ export async function postLead(email: string, phone: string): Promise<boolean> {
     const res = await fetch("/api/lead", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, phone }),
-      // Same origin by default for a relative URL; state this explicitly.
+      body: JSON.stringify({
+        email,
+        phone,
+        // Which page did the lead come from? The server will fall back to
+        // the Referer header and then "/" if we don't send this, but the
+        // path we render is more reliable than Referer (Safari sometimes
+        // strips it).
+        source_page: window.location.pathname + window.location.search,
+      }),
       credentials: "same-origin",
       cache: "no-store",
     });
