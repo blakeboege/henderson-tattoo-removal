@@ -48,18 +48,22 @@ export default function HomeHero() {
     const ctx = gsap.context(() => {
       const eyebrow = el.querySelector("[data-hero-eyebrow]");
       const lines = headlineRef.current?.querySelectorAll("[data-hero-line]") ?? [];
+      const tagline = el.querySelector("[data-hero-tagline]");
       const sub = el.querySelector("[data-hero-sub]");
       const ctas = el.querySelectorAll("[data-hero-cta] > *");
       const stats = el.querySelectorAll("[data-hero-stat]");
+      const local = el.querySelector("[data-hero-local]");
 
       // Set hidden state via JS (not inline) so if this effect never runs,
       // the content stays visible for users and search engines.
       gsap.set(eyebrow, { opacity: 0, y: 12 });
       if (lines.length) gsap.set(lines, { opacity: 0, y: 24, filter: "blur(12px)" });
+      gsap.set(tagline, { opacity: 0, y: 14 });
       gsap.set(sub, { opacity: 0, y: 14 });
       gsap.set(ctas, { opacity: 0, y: 14 });
       gsap.set(imgRef.current, { opacity: 0, y: 32, scale: 0.98, filter: "blur(10px)" });
       gsap.set(stats, { opacity: 0, y: 18 });
+      gsap.set(local, { opacity: 0, y: 10 });
 
       const tl = gsap.timeline({ defaults: { ease: "power3.out" } });
 
@@ -71,7 +75,8 @@ export default function HomeHero() {
           "-=0.25"
         );
       }
-      tl.to(sub, { opacity: 1, y: 0, duration: 0.7 }, "-=0.5");
+      tl.to(tagline, { opacity: 1, y: 0, duration: 0.6 }, "-=0.5");
+      tl.to(sub, { opacity: 1, y: 0, duration: 0.7 }, "-=0.4");
       tl.to(ctas, { opacity: 1, y: 0, duration: 0.6, stagger: 0.08 }, "-=0.45");
       tl.to(
         imgRef.current,
@@ -79,6 +84,7 @@ export default function HomeHero() {
         "-=0.45"
       );
       tl.to(stats, { opacity: 1, y: 0, duration: 0.6, stagger: 0.07 }, "-=0.5");
+      tl.to(local, { opacity: 1, y: 0, duration: 0.5 }, "-=0.3");
     }, el);
 
     return () => ctx.revert();
@@ -93,17 +99,21 @@ export default function HomeHero() {
 
         <h1 ref={headlineRef} style={styles.headline} className="cl-display-sm">
           <span data-hero-line style={{ display: "inline-block" }}>
-            Remove your tattoo,
+            Laser Tattoo Removal
           </span>
           <br />
           <span data-hero-line style={{ display: "inline-block" }}>
-            safely and cleanly.
+            in Henderson, NV
           </span>
         </h1>
 
+        <p data-hero-tagline style={styles.tagline}>
+          Remove your tattoo safely and cleanly.
+        </p>
+
         <p data-hero-sub style={styles.sub} className="cl-sub-sm">
-          Evidence-based laser tattoo removal with PicoWay technology. Transparent pricing. Realistic
-          timelines. No package upsells.
+          Evidence based laser tattoo removal with transparent pricing, realistic timelines, and no
+          package upsells.
         </p>
 
         <div data-hero-cta style={styles.ctaRow}>
@@ -143,6 +153,10 @@ export default function HomeHero() {
             <Stat n="$0" l="Consultation fee" />
           </div>
         </div>
+
+        <p data-hero-local style={styles.localLine}>
+          Serving Henderson, Green Valley, Anthem, Seven Hills, and nearby Las Vegas areas.
+        </p>
       </div>
     </section>
   );
@@ -174,17 +188,27 @@ const styles: Record<string, CSSProperties> = {
     lineHeight: 1.05,
     letterSpacing: "-0.5px",
   },
+  tagline: {
+    margin: "14px auto 0",
+    maxWidth: 620,
+    fontFamily: "var(--cl-font-display)",
+    fontSize: 24,
+    fontWeight: 400,
+    lineHeight: 1.3,
+    letterSpacing: "-0.196px",
+    color: "rgba(255,255,255,0.94)",
+  },
   sub: {
-    marginTop: 16,
+    marginTop: 14,
     marginLeft: "auto",
     marginRight: "auto",
     maxWidth: 620,
     fontFamily: "var(--cl-font-display)",
-    fontSize: 20,
+    fontSize: 19,
     fontWeight: 400,
-    lineHeight: 1.4,
+    lineHeight: 1.5,
     letterSpacing: "0.231px",
-    color: "rgba(255,255,255,0.84)",
+    color: "rgba(255,255,255,0.76)",
   },
   ctaRow: {
     marginTop: 24,
@@ -236,4 +260,13 @@ const styles: Record<string, CSSProperties> = {
     borderTop: "1px solid rgba(255,255,255,0.12)",
     justifyItems: "center",
   },
+  localLine: {
+    margin: "32px auto 0",
+    maxWidth: 600,
+    fontSize: 14,
+    lineHeight: 1.5,
+    letterSpacing: "-0.224px",
+    color: "rgba(255,255,255,0.56)",
+  },
 };
+
