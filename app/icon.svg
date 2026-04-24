@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+  <rect width="64" height="64" rx="10" fill="#000000"/>
+  <text x="32" y="40" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Inter', 'Helvetica Neue', sans-serif" font-size="22" font-weight="800" fill="#ffffff" letter-spacing="-1.2">HTR</text>
+  <g stroke="#2997ff" stroke-linecap="round" stroke-width="2.6">
+    <line x1="52" y1="8" x2="52" y2="16"/>
+    <line x1="48" y1="12" x2="56" y2="12"/>
+  </g>
+</svg>
