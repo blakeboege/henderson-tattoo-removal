@@ -44,70 +44,87 @@ function looksLikeEmail(value: string) {
 }
 
 export async function POST(req: Request) {
-  const supabaseUrl = process.env.SUPABASE_URL;
-  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-  if (!supabaseUrl || !supabaseKey) {
-    console.error("[api/lead] Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY");
-    return NextResponse.json(
-      { ok: false, error: "Server is not configured for lead capture." },
-      { status: 500 }
-    );
-  }
-
-  let email = "";
-  let phone = "";
-  let sourcePage = "";
-
+  // Entire handler is wrapped — any thrown error (fetch, DNS, TLS, etc.)
+  // lands in the outer catch and returns the "Supabase fetch threw" shape
+  // with enough detail to diagnose from Vercel function logs.
   try {
-    const parsed = await readBody(req);
-    email = parsed.email;
-    phone = parsed.phone;
-    sourcePage = parsed.source_page;
-  } catch {
-    return NextResponse.json({ ok: false, error: "Invalid request body" }, { status: 400 });
-  }
+    // Guard against a trailing slash in SUPABASE_URL — without this, the
+    // endpoint becomes `https://xyz.supabase.co//rest/v1/leads` which some
+    // network stacks reject.
+    const supabaseUrl = process.env.SUPABASE_URL?.replace(/\/$/, "");
+    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-  if (!email || !looksLikeEmail(email)) {
-    return NextResponse.json(
-      { ok: false, error: "A valid email is required" },
-      { status: 400 }
+    // Log presence only — never log the key itself.
+    console.log("[api/lead] SUPABASE_URL present:", Boolean(supabaseUrl));
+    console.log(
+      "[api/lead] SUPABASE_SERVICE_ROLE_KEY present:",
+      Boolean(supabaseKey)
     );
-  }
 
-  // source_page: prefer body → Referer header → "/"
-  if (!sourcePage) {
-    const referer = req.headers.get("referer") || "";
-    if (referer) {
-      try {
-        const url = new URL(referer);
-        sourcePage = url.pathname + url.search;
-      } catch {
-        /* ignore bad referer */
+    if (!supabaseUrl || !supabaseKey) {
+      return NextResponse.json(
+        { ok: false, error: "Server is not configured for lead capture." },
+        { status: 500 }
+      );
+    }
+
+    let email = "";
+    let phone = "";
+    let sourcePage = "";
+
+    try {
+      const parsed = await readBody(req);
+      email = parsed.email;
+      phone = parsed.phone;
+      sourcePage = parsed.source_page;
+    } catch {
+      return NextResponse.json(
+        { ok: false, error: "Invalid request body" },
+        { status: 400 }
+      );
+    }
+
+    if (!email || !looksLikeEmail(email)) {
+      return NextResponse.json(
+        { ok: false, error: "A valid email is required" },
+        { status: 400 }
+      );
+    }
+
+    // source_page: prefer body → Referer header → "/"
+    if (!sourcePage) {
+      const referer = req.headers.get("referer") || "";
+      if (referer) {
+        try {
+          const url = new URL(referer);
+          sourcePage = url.pathname + url.search;
+        } catch {
+          /* ignore bad referer */
+        }
       }
     }
-  }
-  if (!sourcePage) sourcePage = "/";
+    if (!sourcePage) sourcePage = "/";
 
-  const userAgent = req.headers.get("user-agent") || "";
+    const userAgent = req.headers.get("user-agent") || "";
 
-  const row = {
-    email,
-    phone: phone || null,
-    source_page: sourcePage,
-    user_agent: userAgent,
-    status: "new" as const,
-  };
+    const row = {
+      email,
+      phone: phone || null,
+      source_page: sourcePage,
+      user_agent: userAgent,
+      status: "new" as const,
+    };
 
-  try {
-    const endpoint = `${supabaseUrl.replace(/\/$/, "")}/rest/v1/leads`;
+    const endpoint = `${supabaseUrl}/rest/v1/leads`;
+    // Logging the exact URL being fetched (no secret in the URL itself).
+    console.log("[api/lead] Fetching:", endpoint);
+
     const upstream = await fetch(endpoint, {
       method: "POST",
       headers: {
-        "Content-Type": "application/json",
         apikey: supabaseKey,
         Authorization: `Bearer ${supabaseKey}`,
-        // We don't need the inserted row back — save a round trip.
+        "Content-Type": "application/json",
         Prefer: "return=minimal",
       },
       body: JSON.stringify(row),
@@ -115,26 +132,34 @@ export async function POST(req: Request) {
     });
 
     if (!upstream.ok) {
-      const detail = await upstream.text().catch(() => "");
+      const details = await upstream.text().catch(() => "");
       console.error(
         "[api/lead] Supabase insert failed",
         upstream.status,
-        detail.slice(0, 500)
+        details.slice(0, 500)
       );
       return NextResponse.json(
         {
           ok: false,
-          error: `Lead store responded ${upstream.status}`,
+          error: "Supabase insert failed",
+          status: upstream.status,
+          details: details.slice(0, 500),
         },
-        { status: 502 }
+        { status: upstream.status }
       );
     }
 
     return NextResponse.json({ ok: true });
-  } catch (err) {
-    const message = err instanceof Error ? err.message : "Upstream network error";
-    console.error("[api/lead] Upstream error", message);
-    return NextResponse.json({ ok: false, error: message }, { status: 502 });
+  } catch (error) {
+    console.error("[api/lead] Supabase fetch threw:", String(error));
+    return NextResponse.json(
+      {
+        ok: false,
+        error: "Supabase fetch threw",
+        details: String(error),
+      },
+      { status: 502 }
+    );
   }
 }
 
