@@ -11,6 +11,7 @@ const items = [
   { label: "Services", href: "/services" },
   { label: "Before & after", href: "/results" },
   { label: "About", href: "/about" },
+  { label: "Blog", href: "/blog" },
   { label: "Contact", href: "/contact" },
 ];
 
