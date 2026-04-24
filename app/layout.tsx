@@ -5,19 +5,44 @@ import Footer from "@/components/Footer";
 import BookingProvider from "@/components/BookingProvider";
 
 export const metadata: Metadata = {
-  title: "Henderson Tattoo Removal — Safe, evidence-based laser tattoo removal in Henderson, NV",
+  metadataBase: new URL("https://hendersontattooremoval.com"),
+  title:
+    "Laser Tattoo Removal in Henderson, NV | Henderson Tattoo Removal",
   description:
-    "Evidence-based laser tattoo removal with PicoWay technology. Transparent pricing. Realistic timelines. No package upsells. Serving Henderson, Las Vegas, and Summerlin.",
-  icons: {
-    icon: "/assets/logomark.svg",
-  },
+    "Safe laser tattoo removal in Henderson, NV with transparent pricing, realistic timelines, and free consultations. Serving Henderson, Green Valley, Anthem, Seven Hills, and Las Vegas.",
   openGraph: {
-    title: "Henderson Tattoo Removal",
+    title: "Laser Tattoo Removal in Henderson, NV",
     description:
-      "Safe, evidence-based laser tattoo removal in Henderson, NV. Transparent pricing. Realistic timelines.",
+      "Safe laser tattoo removal in Henderson, NV with transparent pricing, realistic timelines, and free consultations.",
+    url: "https://hendersontattooremoval.com",
+    siteName: "Henderson Tattoo Removal",
     type: "website",
+    locale: "en_US",
   },
-  robots: { index: true, follow: true },
+  twitter: {
+    card: "summary_large_image",
+    title: "Laser Tattoo Removal in Henderson, NV",
+    description:
+      "Safe laser tattoo removal in Henderson, NV with transparent pricing, realistic timelines, and free consultations.",
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-snippet": -1,
+      "max-image-preview": "large",
+      "max-video-preview": -1,
+    },
+  },
+  icons: {
+    // Favicon is auto-handled by Next.js from app/icon.svg.
+    // Apple touch icon is served from /public as a static SVG.
+    apple: [
+      { url: "/apple-touch-icon.svg", sizes: "180x180", type: "image/svg+xml" },
+    ],
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
