@@ -29,11 +29,12 @@ function DotSep({ active }: { active?: boolean }) {
     />
   );
 }
+
 function LockIcon() {
   return (
     <svg
-      width="12"
-      height="12"
+      width="13"
+      height="13"
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
@@ -53,20 +54,31 @@ export default function EmailCapture() {
   const [step, setStep] = useState<"email" | "phone" | "done">("email");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
-  // Snapshot of the values at submit time, so the success message can keep
-  // showing them after the input state is cleared.
+  // Snapshot of submitted values so the success state can reference them
+  // after the live input state is cleared.
   const [sentEmail, setSentEmail] = useState("");
   const [sentPhone, setSentPhone] = useState("");
+  // Gate the final submit so a slow network can't produce a double-tap.
+  const [submitting, setSubmitting] = useState(false);
   const phoneRef = useRef<HTMLInputElement | null>(null);
-  const ref = useReveal<HTMLElement>({ y: 24, stagger: 0.07 });
+  const ref = useReveal<HTMLElement>({ y: 24, stagger: 0.08, duration: 0.9 });
 
-  const finalize = (emailValue: string, phoneValue: string) => {
-    postLead(emailValue, phoneValue);
-    setSentEmail(emailValue);
-    setSentPhone(phoneValue);
-    setEmail("");
-    setPhone("");
-    setStep("done");
+  const finalize = async (emailValue: string, phoneValue: string) => {
+    if (submitting) return;
+    setSubmitting(true);
+    try {
+      // Await so we observe that postLead has at least dispatched the
+      // request (fetch + keepalive primary, sendBeacon / hidden-form
+      // fallbacks) before flipping to the success state.
+      await postLead(emailValue, phoneValue);
+    } finally {
+      setSentEmail(emailValue);
+      setSentPhone(phoneValue);
+      setEmail("");
+      setPhone("");
+      setSubmitting(false);
+      setStep("done");
+    }
   };
 
   const submitEmail = (e: React.FormEvent) => {
@@ -75,104 +87,130 @@ export default function EmailCapture() {
     setStep("phone");
     setTimeout(() => phoneRef.current?.focus(), 80);
   };
+
   const submitPhone = (e: React.FormEvent) => {
     e.preventDefault();
-    finalize(email, phone);
+    if (submitting) return;
+    void finalize(email, phone);
   };
+
   const skipPhone = () => {
-    finalize(email, "");
+    if (submitting) return;
+    void finalize(email, "");
   };
 
   return (
-    <section ref={ref} style={styles.section} aria-labelledby="ec-headline" className="cl-section-sm cl-pad-sm">
+    <section
+      id="estimate-form"
+      ref={ref}
+      style={styles.section}
+      aria-labelledby="ec-headline"
+      className="cl-section-sm cl-pad-sm"
+    >
       <div style={styles.inner}>
-        <div style={styles.eyebrow} data-reveal>
-          Free estimate
-        </div>
-        <h2 id="ec-headline" style={styles.h} className="cl-display-sm" data-reveal>
-          Want to know what your tattoo will take to remove?
-        </h2>
-        <p style={styles.sub} data-reveal>
-          We&apos;ll send realistic pricing and session timelines based on your tattoo. Serving Henderson
-          and Las Vegas.
-        </p>
-
         {step === "email" && (
-          <form onSubmit={submitEmail} style={styles.form} noValidate data-reveal>
-            <div style={styles.stepDots}>
+          <>
+            <div style={styles.stepBar} data-reveal>
               <Dot active /> <DotSep /> <Dot />
               <span style={styles.stepLabel}>Step 1 of 2 · Email</span>
             </div>
-            <div style={styles.row}>
-              <label htmlFor="ec-email" style={styles.srOnly}>
-                Email address
-              </label>
-              <input
-                id="ec-email"
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@example.com"
-                style={styles.input}
-                autoComplete="email"
-              />
+            <h2 id="ec-headline" style={styles.h} className="cl-display-sm" data-reveal>
+              Want to know what your tattoo will take to remove?
+            </h2>
+            <p style={styles.sub} data-reveal>
+              We&apos;ll send realistic pricing and session timelines based on your tattoo. Serving
+              Henderson and Las Vegas.
+            </p>
+            <form onSubmit={submitEmail} style={styles.form} noValidate data-reveal>
+              <div style={styles.field}>
+                <label htmlFor="ec-email" style={styles.label}>
+                  Email
+                </label>
+                <input
+                  id="ec-email"
+                  name="email"
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="you@example.com"
+                  style={styles.input}
+                  autoComplete="email"
+                  inputMode="email"
+                />
+              </div>
               <button type="submit" style={styles.btn} className="cl-btn-pressable">
                 Get my estimate →
               </button>
-            </div>
-            <div style={styles.trust}>
-              <LockIcon />
-              <span>We respect your privacy. No spam.</span>
-            </div>
-          </form>
+              <div style={styles.trust}>
+                <LockIcon />
+                <span>We respect your privacy. No spam.</span>
+              </div>
+            </form>
+          </>
         )}
 
         {step === "phone" && (
-          <form onSubmit={submitPhone} style={styles.form} noValidate data-reveal>
-            <div style={styles.stepDots}>
+          <>
+            <div style={styles.stepBar} data-reveal>
               <Dot done /> <DotSep active /> <Dot active />
-              <span style={styles.stepLabel}>Step 2 of 2 · Phone (optional)</span>
+              <span style={styles.stepLabel}>Step 2 of 2 · Phone optional</span>
             </div>
-            <div style={styles.stepCopy}>
-              Saved <strong style={{ color: "#fff" }}>{email}</strong>. Add a phone number and we&apos;ll
-              text your estimate as well — much faster than waiting on email.
-            </div>
-            <div style={styles.row}>
-              <label htmlFor="ec-phone" style={styles.srOnly}>
-                Phone number
-              </label>
-              <input
-                ref={phoneRef}
-                id="ec-phone"
-                type="tel"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                placeholder="(702) 555-0123"
-                style={styles.input}
-                autoComplete="tel"
-              />
-              <button type="submit" style={styles.btn} className="cl-btn-pressable">
-                {phone ? "Send my estimate →" : "Finish →"}
+            <h2 style={styles.h} className="cl-display-sm" data-reveal>
+              Got it. Want the estimate by text too?
+            </h2>
+            <p style={styles.sub} data-reveal>
+              Add your phone number for a faster reply, or continue with email only.
+            </p>
+            <form onSubmit={submitPhone} style={styles.form} noValidate data-reveal>
+              <div style={styles.field}>
+                <label htmlFor="ec-phone" style={styles.label}>
+                  Phone number
+                </label>
+                <input
+                  ref={phoneRef}
+                  id="ec-phone"
+                  name="phone"
+                  type="tel"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  placeholder="(702) 555-0123"
+                  style={styles.input}
+                  autoComplete="tel"
+                  inputMode="tel"
+                />
+              </div>
+              <button
+                type="submit"
+                style={{ ...styles.btn, ...(submitting ? styles.btnDisabled : {}) }}
+                className="cl-btn-pressable"
+                disabled={submitting}
+              >
+                {submitting ? "Sending…" : "Finish →"}
               </button>
-            </div>
-            <div style={styles.trust}>
-              <button type="button" onClick={skipPhone} style={styles.skipBtn}>
-                Skip — email only
-              </button>
-              <span style={{ opacity: 0.4 }}>·</span>
-              <LockIcon />
-              <span>We respect your privacy. No spam.</span>
-            </div>
-          </form>
+              <div style={styles.trust}>
+                <button
+                  type="button"
+                  onClick={skipPhone}
+                  style={styles.skipBtn}
+                  disabled={submitting}
+                >
+                  Email only is fine
+                </button>
+                <span style={{ opacity: 0.4 }}>·</span>
+                <LockIcon />
+                <span>We respect your privacy. No spam.</span>
+              </div>
+            </form>
+          </>
         )}
 
         {step === "done" && (
           <div style={styles.done} data-reveal>
             <div style={styles.doneIcon}>
               <svg
-                width="28"
-                height="28"
+                width="30"
+                height="30"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="#30d158"
@@ -185,8 +223,7 @@ export default function EmailCapture() {
             </div>
             <div style={styles.doneH}>Got it — your estimate is on its way.</div>
             <div style={styles.doneB}>
-              We&apos;ll send pricing and session timelines to{" "}
-              <strong style={{ color: "#fff" }}>{sentEmail}</strong>
+              We&apos;ll follow up with <strong style={{ color: "#fff" }}>{sentEmail}</strong>
               {sentPhone ? (
                 <>
                   {" "}
@@ -206,142 +243,140 @@ const styles: Record<string, CSSProperties> = {
   section: {
     background: "#000",
     color: "#fff",
-    padding: "120px 24px",
+    padding: "128px 24px",
     position: "relative",
     overflow: "hidden",
     textAlign: "center",
+    scrollMarginTop: 72,
   },
-  inner: { maxWidth: 760, margin: "0 auto", position: "relative" },
-  eyebrow: {
-    fontSize: 14,
-    fontWeight: 600,
-    color: "#2997ff",
-    letterSpacing: "-0.224px",
-    marginBottom: 16,
+  inner: { maxWidth: 720, margin: "0 auto", position: "relative" },
+  stepBar: {
+    display: "inline-flex",
+    alignItems: "center",
+    gap: 6,
+    fontSize: 13,
+    letterSpacing: "-0.12px",
+    color: "rgba(255,255,255,0.66)",
+    marginBottom: 20,
+    fontWeight: 500,
   },
+  stepLabel: { marginLeft: 8 },
   h: {
     margin: 0,
-    fontFamily: 'var(--cl-font-display)',
-    fontSize: 52,
+    fontFamily: "var(--cl-font-display)",
+    fontSize: 48,
     fontWeight: 600,
     lineHeight: 1.07,
     letterSpacing: "-0.4px",
     textWrap: "balance",
   },
   sub: {
-    margin: "20px auto 0",
-    maxWidth: 560,
+    margin: "18px auto 0",
+    maxWidth: 580,
     fontSize: 19,
-    lineHeight: 1.47,
+    lineHeight: 1.6,
     letterSpacing: "-0.374px",
-    color: "rgba(255,255,255,0.72)",
+    color: "rgba(255,255,255,0.8)",
   },
-  form: { marginTop: 48, display: "flex", flexDirection: "column", alignItems: "center", gap: 14 },
-  stepDots: {
+  form: {
+    marginTop: 44,
     display: "flex",
-    alignItems: "center",
-    gap: 6,
-    fontSize: 12,
-    letterSpacing: "-0.12px",
-    color: "rgba(255,255,255,0.56)",
-  },
-  stepLabel: { marginLeft: 8 },
-  stepCopy: {
-    fontSize: 15,
-    lineHeight: 1.5,
-    letterSpacing: "-0.224px",
-    color: "rgba(255,255,255,0.72)",
-    maxWidth: 520,
-    margin: "4px auto 0",
-  },
-  row: {
-    display: "flex",
-    gap: 10,
+    flexDirection: "column",
+    gap: 20,
     width: "100%",
     maxWidth: 520,
-    margin: "8px auto 0",
-    flexWrap: "wrap",
+    margin: "44px auto 0",
+    textAlign: "left",
+  },
+  field: { display: "flex", flexDirection: "column", gap: 8, minWidth: 0 },
+  label: {
+    fontSize: 13,
+    fontWeight: 500,
+    letterSpacing: "-0.12px",
+    color: "rgba(255,255,255,0.82)",
   },
   input: {
-    flex: "1 1 260px",
-    background: "rgba(255,255,255,0.08)",
+    width: "100%",
+    background: "rgba(255,255,255,0.06)",
     border: "1px solid rgba(255,255,255,0.16)",
-    borderRadius: 980,
-    padding: "14px 20px",
-    fontSize: 16,
+    borderRadius: 14,
+    padding: "16px 20px",
+    fontSize: 17,
     letterSpacing: "-0.374px",
     color: "#fff",
     fontFamily: "inherit",
     outline: "none",
     minWidth: 0,
+    transition: "border-color 180ms var(--cl-ease), background 180ms var(--cl-ease)",
   },
   btn: {
+    marginTop: 4,
     background: "#0071e3",
     color: "#fff",
     border: "none",
-    padding: "14px 24px",
+    padding: "18px 28px",
     borderRadius: 980,
     fontFamily: "inherit",
-    fontSize: 16,
+    fontSize: 17,
     fontWeight: 500,
     letterSpacing: "-0.374px",
     cursor: "pointer",
-    whiteSpace: "nowrap",
+    width: "100%",
+    transition: "opacity 180ms var(--cl-ease)",
+  },
+  btnDisabled: {
+    opacity: 0.7,
+    cursor: "not-allowed",
   },
   trust: {
-    marginTop: 10,
+    marginTop: 6,
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
     gap: 8,
-    fontSize: 12,
+    fontSize: 13,
     letterSpacing: "-0.12px",
-    color: "rgba(255,255,255,0.48)",
+    color: "rgba(255,255,255,0.6)",
     flexWrap: "wrap",
+    textAlign: "center",
   },
   skipBtn: {
     background: "transparent",
     border: "none",
-    color: "rgba(255,255,255,0.72)",
+    color: "rgba(255,255,255,0.82)",
     cursor: "pointer",
     fontFamily: "inherit",
-    fontSize: 12,
+    fontSize: 13,
     letterSpacing: "-0.12px",
     padding: 0,
     textDecoration: "underline",
   },
-  srOnly: {
-    position: "absolute",
-    width: 1,
-    height: 1,
-    padding: 0,
-    margin: -1,
-    overflow: "hidden",
-    clip: "rect(0,0,0,0)",
-    whiteSpace: "nowrap",
-    border: 0,
+  done: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    gap: 16,
   },
-  done: { marginTop: 48, display: "flex", flexDirection: "column", alignItems: "center", gap: 14 },
   doneIcon: {
-    width: 56,
-    height: 56,
+    width: 60,
+    height: 60,
     borderRadius: "50%",
-    background: "rgba(48,209,88,0.12)",
+    background: "rgba(48,209,88,0.14)",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
   },
   doneH: {
-    fontFamily: 'var(--cl-font-display)',
-    fontSize: 28,
+    fontFamily: "var(--cl-font-display)",
+    fontSize: 30,
     fontWeight: 600,
     letterSpacing: "-0.3px",
   },
   doneB: {
-    maxWidth: 520,
-    fontSize: 16,
-    lineHeight: 1.5,
+    maxWidth: 560,
+    fontSize: 17,
+    lineHeight: 1.6,
     letterSpacing: "-0.224px",
-    color: "rgba(255,255,255,0.72)",
+    color: "rgba(255,255,255,0.78)",
   },
 };
