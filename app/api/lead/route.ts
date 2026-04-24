@@ -95,3 +95,43 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: false, error: message }, { status: 502 });
   }
 }
+
+/**
+ * Any non-POST method hits this branch. We return a real JSON body through
+ * NextResponse.json so the browser always sees `Content-Type: application/json`
+ * and renders the response inline instead of treating it as a file download
+ * (a heuristic mobile Chrome applies to responses without a clear content
+ * type — which is why GET used to save the URL as `lead.txt`).
+ */
+function methodNotAllowed() {
+  return NextResponse.json(
+    {
+      ok: false,
+      error: "Method not allowed. POST JSON { email, phone } to this endpoint.",
+    },
+    {
+      status: 405,
+      headers: {
+        Allow: "POST",
+        "Content-Type": "application/json; charset=utf-8",
+        "Cache-Control": "no-store",
+      },
+    }
+  );
+}
+
+export async function GET() {
+  return methodNotAllowed();
+}
+export async function HEAD() {
+  return methodNotAllowed();
+}
+export async function PUT() {
+  return methodNotAllowed();
+}
+export async function PATCH() {
+  return methodNotAllowed();
+}
+export async function DELETE() {
+  return methodNotAllowed();
+}
