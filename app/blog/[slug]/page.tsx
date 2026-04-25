@@ -5,11 +5,13 @@ import { notFound } from "next/navigation";
 import PageHero from "@/components/PageHero";
 import FinalCTA from "@/components/FinalCTA";
 import TattooRemovalCostArticle from "@/components/blog/articles/TattooRemovalCostArticle";
+import BeforeAfterResultsArticle from "@/components/blog/articles/BeforeAfterResultsArticle";
 import { blogPosts, getPostBySlug } from "@/lib/blogPosts";
 
 type Params = { slug: string };
 
 const COST_SLUG = "tattoo-removal-cost-las-vegas-henderson";
+const BEFORE_AFTER_SLUG = "tattoo-removal-before-and-after-results";
 
 // Prebuild one static page per known slug. Any other slug 404s.
 export function generateStaticParams() {
@@ -29,6 +31,15 @@ export function generateMetadata({ params }: { params: Params }): Metadata {
     };
   }
 
+  if (post.slug === BEFORE_AFTER_SLUG) {
+    return {
+      title: "Tattoo Removal Before and After: What Results Should You Expect?",
+      description:
+        "Tattoo removal before and after results vary by ink color, tattoo age, size, location, and skin response. Learn what realistic fading looks like before you start.",
+      alternates: { canonical: `/blog/${post.slug}` },
+    };
+  }
+
   return {
     title: `${post.title} — Henderson Tattoo Removal`,
     description: post.excerpt,
@@ -40,12 +51,16 @@ export default function BlogArticlePage({ params }: { params: Params }) {
   const post = getPostBySlug(params.slug);
   if (!post) notFound();
 
-  const isCostArticle = post.slug === COST_SLUG;
-
   return (
     <div data-screen-label="Blog Article">
       <PageHero eyebrow="Blog" headline={post.title} sub={post.excerpt} />
-      {isCostArticle ? <TattooRemovalCostArticle /> : <ComingSoonPlaceholder />}
+      {post.slug === COST_SLUG ? (
+        <TattooRemovalCostArticle />
+      ) : post.slug === BEFORE_AFTER_SLUG ? (
+        <BeforeAfterResultsArticle />
+      ) : (
+        <ComingSoonPlaceholder />
+      )}
       <FinalCTA />
     </div>
   );
