@@ -4,9 +4,12 @@ import type { CSSProperties } from "react";
 import { notFound } from "next/navigation";
 import PageHero from "@/components/PageHero";
 import FinalCTA from "@/components/FinalCTA";
+import TattooRemovalCostArticle from "@/components/blog/articles/TattooRemovalCostArticle";
 import { blogPosts, getPostBySlug } from "@/lib/blogPosts";
 
 type Params = { slug: string };
+
+const COST_SLUG = "tattoo-removal-cost-las-vegas-henderson";
 
 // Prebuild one static page per known slug. Any other slug 404s.
 export function generateStaticParams() {
@@ -16,6 +19,16 @@ export function generateStaticParams() {
 export function generateMetadata({ params }: { params: Params }): Metadata {
   const post = getPostBySlug(params.slug);
   if (!post) return {};
+
+  if (post.slug === COST_SLUG) {
+    return {
+      title: "How Much Does Tattoo Removal Cost in Las Vegas and Henderson?",
+      description:
+        "Tattoo removal cost in Las Vegas and Henderson depends on tattoo size, ink color, session count, and removal goals. Learn what affects pricing before you book.",
+      alternates: { canonical: `/blog/${post.slug}` },
+    };
+  }
+
   return {
     title: `${post.title} — Henderson Tattoo Removal`,
     description: post.excerpt,
@@ -27,29 +40,37 @@ export default function BlogArticlePage({ params }: { params: Params }) {
   const post = getPostBySlug(params.slug);
   if (!post) notFound();
 
+  const isCostArticle = post.slug === COST_SLUG;
+
   return (
     <div data-screen-label="Blog Article">
       <PageHero eyebrow="Blog" headline={post.title} sub={post.excerpt} />
-      <section style={styles.section} className="cl-section-sm cl-pad-sm">
-        <div style={styles.inner}>
-          <div style={styles.note}>
-            <div style={styles.noteEyebrow}>Coming soon</div>
-            <h2 style={styles.noteH}>The full guide is being written.</h2>
-            <p style={styles.noteBody}>
-              We&apos;re finishing this article — it will be published here shortly. In the
-              meantime, browse our other guides, or book a free 30-minute consult for a
-              personalized answer to your specific tattoo.
-            </p>
-            <div style={styles.actions}>
-              <Link href="/blog" style={styles.backLink}>
-                ← Back to blog
-              </Link>
-            </div>
-          </div>
-        </div>
-      </section>
+      {isCostArticle ? <TattooRemovalCostArticle /> : <ComingSoonPlaceholder />}
       <FinalCTA />
     </div>
+  );
+}
+
+function ComingSoonPlaceholder() {
+  return (
+    <section style={styles.section} className="cl-section-sm cl-pad-sm">
+      <div style={styles.inner}>
+        <div style={styles.note}>
+          <div style={styles.noteEyebrow}>Coming soon</div>
+          <h2 style={styles.noteH}>The full guide is being written.</h2>
+          <p style={styles.noteBody}>
+            We&apos;re finishing this article — it will be published here shortly. In the
+            meantime, browse our other guides, or book a free 30-minute consult for a
+            personalized answer to your specific tattoo.
+          </p>
+          <div style={styles.actions}>
+            <Link href="/blog" style={styles.backLink}>
+              ← Back to blog
+            </Link>
+          </div>
+        </div>
+      </div>
+    </section>
   );
 }
 
